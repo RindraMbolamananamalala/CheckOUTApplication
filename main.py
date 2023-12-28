@@ -1,11 +1,20 @@
-# This is a sample Python script.
 
-# Press Maj+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+import sys
 
+from PySide2.QtWidgets import *
 
-# Press the green button in the gutter to run the script.
+from CONFIGURATIONS.logger import LOGGER
+
+from PRESENTATION.VIEW.barcode_scan_view import BarcodeScanView
+
 if __name__ == '__main__':
-    print("OK Check OUT Project")
+    application = QApplication(sys.argv)
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    view = BarcodeScanView()
+    view.show_window()
+
+    # Application has started...
+    LOGGER.info("Check OUT Application has started")
+
+    sys.exit(application.exec_())
+
