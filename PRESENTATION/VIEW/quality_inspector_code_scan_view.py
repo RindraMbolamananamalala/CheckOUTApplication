@@ -38,6 +38,14 @@ class QualityInspectorCodeScanView:
         # At the beginning, let's clear the Window..
         self.clear_window()
 
+    def clear_window(self):
+        """
+        Clearing the content of the Window
+        :return:
+        """
+        # For the moment, just pass..
+        pass
+
     def show_window(self):
         """
         Displaying the Quality Inspector Code Scan window
