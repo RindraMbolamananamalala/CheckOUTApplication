@@ -64,7 +64,7 @@ class ReworkCheckOUTController:
     def __init__(self):
         # First, let's initialize all the View components to be used by the current Controller
         self.set_barcode_scan_view(BarcodeScanView())
-        self.set_quality_inspector_code_scan_view(QualityInspectorCodeScanView)
+        self.set_quality_inspector_code_scan_view(QualityInspectorCodeScanView())
         self.set_test_report_result_view(TestReportResultView())
 
         # The first window to display is that of the Barcode Scan...
