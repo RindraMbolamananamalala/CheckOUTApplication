@@ -4,6 +4,8 @@ import sys
 from PySide2.QtWidgets import *
 
 from CONFIGURATIONS.logger import LOGGER
+from CONFIGURATIONS.application_properties import get_application_property
+from CONFIGURATIONS.settings_properties import get_settings_property
 
 from PRESENTATION.HMI.ui_test_report_result import UITestReportResult
 from PRESENTATION.HMI.ui_quality_inspector_code_scan import UIQualityInspectorCodeScan
