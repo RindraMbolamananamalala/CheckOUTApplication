@@ -9,6 +9,7 @@ __author__ = "Rindra Mbolamananamalala"
 __email__ = "rindraibi@gmail.com"
 
 from CONFIGURATIONS.logger import LOGGER
+from CONFIGURATIONS.settings_properties import get_settings_property
 
 from PRESENTATION.VIEW.barcode_scan_view import BarcodeScanView
 from PRESENTATION.VIEW.quality_inspector_code_scan_view import QualityInspectorCodeScanView
@@ -97,13 +98,79 @@ class ReworkCheckOUTController:
         """
         return self.order_number_currently_treated
 
+    def set_pft_files_folder_path(self, pft_files_folder_path: str):
+        """
+
+        :param pft_files_folder_path: The path leading to the PFT Files
+        :return: None
+        """
+        self.pft_files_folder_path  = pft_files_folder_path
+
+    def get_pft_files_folder_path(self) -> str:
+        """
+
+        :return: The path leading to the PFT Files
+        """
+        return self.pft_files_folder_path
+
+    def set_pft_test_reports_folder_path(self, pft_test_reports_folder_path: str):
+        """
+
+        :param pft_test_reports_folder_path: The path leading to the Folder dedicated to the Test Reports
+        :return: None
+        """
+        self.pft_test_reports_folder_path = pft_test_reports_folder_path
+
+    def get_pft_test_reports_folder_path(self) -> str:
+        """
+
+        :return: The path leading to the Folder dedicated to the Test Reports
+        """
+        return self.pft_test_reports_folder_path
+
+    def set_list_pft_station_names(self, list_pft_station_names: list):
+        """
+
+        :param list_pft_station_names: The list of PFT Stations' names
+        :return: None
+        """
+        self.list_pft_station_names = list_pft_station_names
+
+    def get_list_pft_station_names(self) -> list:
+        """
+
+        :return: The list of PFT Stations' names
+        """
+        return self.list_pft_station_names
+
+    def set_list_quality_inspector_codes(self, list_quality_inspector_codes: list):
+        """
+
+        :param list_quality_inspector_codes: The list of Quality Inspector Codes
+        :return: None
+        """
+        self.list_quality_inspector_codes = list_quality_inspector_codes
+
+    def get_list_quality_inspector_codes(self) -> list:
+        """
+
+        :return: The list of Quality Inspector Codes
+        """
+        return self.list_quality_inspector_codes
+
     def __init__(self):
         # First, let's initialize all the View components to be used by the current Controller
         self.set_barcode_scan_view(BarcodeScanView())
         self.set_quality_inspector_code_scan_view(QualityInspectorCodeScanView())
         self.set_test_report_result_view(TestReportResultView())
 
-        # Then, let's initialize the Application Service component used by the same Controller
+        # Then, let's load all the Settings' properties from the corresponding .INI file
+        self.set_pft_files_folder_path(get_settings_property("pft_files_folder_path"))
+        self.set_pft_test_reports_folder_path(get_settings_property("pft_test_reports_folder_path"))
+        self.set_list_pft_station_names(get_settings_property("list_pft_station_names").split(","))
+        self.set_list_quality_inspector_codes(get_settings_property("list_quality_inspector_codes").split(","))
+
+        # Now, Let's initialize the Application Service component used by the same Controller
         self.set_rework_check_out_as(ReworkCheckOUTASImpl())
 
         # Let's manage all the events
