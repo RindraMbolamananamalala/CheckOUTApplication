@@ -10,7 +10,7 @@ __email__ = "rindraibi@gmail.com"
 
 from PySide2.QtWidgets import *
 
-from PRESENTATION.HMI.ui_quality_inspector_code_scan import UIQualityInspectorCodeScan
+from PRESENTATION.HMI.QUALITY_INSPECTOR_CODE_UI.ui_quality_inspector_code_scan import UIQualityInspectorCodeScan
 
 
 class QualityInspectorCodeScanView:

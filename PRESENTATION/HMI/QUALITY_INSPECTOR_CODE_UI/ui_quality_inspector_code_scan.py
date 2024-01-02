@@ -2,7 +2,7 @@
 
 """
 ui_quality_inspector_code_scan.py: The python file dedicated to the graphical definition of the specific window for the
-Scan process of Quality Inspector Code of the Check OUT
+Scan process of the Quality Inspector Code of the Check OUT
 """
 
 __author__ = "Rindra Mbolamananamalala"
@@ -12,32 +12,21 @@ from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
+from PRESENTATION.HMI.QUALITY_INSPECTOR_CODE_UI.ui_quality_inspector_code import UIQualityInspectorCode
 
-class UIQualityInspectorCodeScan(object):
 
-    def set_main_window(self, main_window: QMainWindow):
-        """
-
-        :param main_window: The Qt Main Window to be used by the the current Main Window.
-        :return:
-        """
-        self.main_window = main_window
-
-    def get_main_window(self) -> QMainWindow:
-        """
-
-        :return: The Qt Main Window used by the the current Main Window.
-        """
-        return self.main_window
+class UIQualityInspectorCodeScan(UIQualityInspectorCode):
 
     def __init__(self, main_window: QMainWindow):
-        # General Settings
-        if not main_window.objectName():
-            main_window.setObjectName(u"MainWindow")
-            self.set_main_window(main_window)
+        """
+
+        :param main_window: The main window to be used by the current window
+        """
+        # First, we have to call the constructor of the Superclass in order to initialize (to configure)
+        # all of the behaviors and data defined in it
+        super(UIQualityInspectorCodeScan, self).__init__(main_window)
+        # Customizing the Window's Title
         self.get_main_window().setWindowTitle("Scan")
-        self.get_main_window().setFixedSize(400, 200)
-        self.get_main_window().setGeometry(800, 500, 400, 200)
         # Thea area for the actual scanning of barcode
         self.area_actual_scanning = QWidget(self.get_main_window())
         self.area_actual_scanning.setGeometry(QRect(10, 50, 375, 75))
@@ -54,4 +43,3 @@ class UIQualityInspectorCodeScan(object):
                                         u" color: white;"
                                         u"border-radius: 37px;")
         self.text_barcode.setPlaceholderText("\n Scan Quality Inspector Code")
-
