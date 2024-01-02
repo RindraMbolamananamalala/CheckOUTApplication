@@ -8,11 +8,14 @@ within the "PRESENTATION" layer of the Project.
 __author__ = "Rindra Mbolamananamalala"
 __email__ = "rindraibi@gmail.com"
 
+import sys
+
 from CONFIGURATIONS.logger import LOGGER
 from CONFIGURATIONS.settings_properties import get_settings_property
 
 from PRESENTATION.VIEW.barcode_scan_view import BarcodeScanView
 from PRESENTATION.VIEW.quality_inspector_code_scan_view import QualityInspectorCodeScanView
+from PRESENTATION.VIEW.quality_inspector_code_verification_view import QualityInspectorCodeVerificationView
 from PRESENTATION.VIEW.test_report_result_view import TestReportResultView
 
 from BUSINESS.SERVICE.APPLICATION_SERVICE.INTF.rework_check_out_as_intf import ReworkCheckOUTASIntf
@@ -51,6 +54,23 @@ class ReworkCheckOUTController:
         :return: The Quality Inspector Code Scan View used by the current Controller
         """
         return self.quality_inspector_code_scan_view
+
+    def set_quality_inspector_code_verification_view(self
+                                    , quality_inspector_code_verification_view: QualityInspectorCodeVerificationView):
+        """
+
+        :param quality_inspector_code_verification_view: The Quality Inspector Code Verification View to be used by
+        the current Controller
+        :return: None
+        """
+        self.quality_inspector_code_verification_view = quality_inspector_code_verification_view
+
+    def get_quality_inspector_code_verification_view(self) -> QualityInspectorCodeVerificationView:
+        """
+
+        :return: The Quality Inspector Code Verification View used by the current Controller
+        """
+        return self.quality_inspector_code_verification_view
 
     def set_test_report_result_view(self, test_report_result_view: TestReportResultView):
         """
@@ -162,6 +182,7 @@ class ReworkCheckOUTController:
         # First, let's initialize all the View components to be used by the current Controller
         self.set_barcode_scan_view(BarcodeScanView())
         self.set_quality_inspector_code_scan_view(QualityInspectorCodeScanView())
+        self.set_quality_inspector_code_verification_view(QualityInspectorCodeVerificationView())
         self.set_test_report_result_view(TestReportResultView())
 
         # Then, let's load all the Settings' properties from the corresponding .INI file
@@ -181,9 +202,22 @@ class ReworkCheckOUTController:
 
     def manage_events(self):
         barcode_scan_window = self.get_barcode_scan_view().get_ui_barcode_scan()
+        """QIC stands for "Quality Inspector Code" """
+        qic_scan_window = self.get_quality_inspector_code_scan_view().get_ui_quality_inspector_code_scan()
+        qic_verification_window = self.get_quality_inspector_code_verification_view()\
+                                        .get_ui_quality_inspector_code_verification()
 
         # Events related to the Text Area dedicated to the Scan of a Barcode of Order Number
         barcode_scan_window.get_text_barcode().textChanged.connect(self.manage_scan_barcode)
+
+        # Events related to the Text Area dedicated to the Scan of the Quality Inspector Code
+        qic_scan_window.get_text_barcode().textChanged.connect(self.manage_scan_qic)
+
+        # Events related to the "OK" button of the Quality Inspector Code Verification window
+        qic_verification_window.get_button_ok().clicked.connect(self.manage_qic_verification_ok_chosen)
+
+        # Events related to the "Abort" button of the Quality Inspector Code Verification window
+        qic_verification_window.get_button_abort().clicked.connect(self.manage_qic_verification_abort_chosen)
 
     def start_check_out(self):
         """
@@ -220,6 +254,64 @@ class ReworkCheckOUTController:
             )
             raise
 
+    def manage_scan_qic(self):
+        """
+        Identifying if a complete string for an Quality Inspector Code is present within the Barcode being scanned,
+        and then verifying if the latter is a correct one or not
+        :return: None
+        """
+        try:
+            """QIC stands for "Quality Inspector Code" """
+            qic_scan_window = self.get_quality_inspector_code_scan_view().get_ui_quality_inspector_code_scan()
+            current_qic_text = qic_scan_window.get_text_barcode().toPlainText()
+            if len(current_qic_text) > 0:
+                # First, reinitializing the appearance of the Quality Inspector Code Scan Window
+                self.get_barcode_scan_view().reinitialize_window_appearance()
+                if "\n" in current_qic_text:
+                    # A complete string for a QIC was found.. It's the QIC to be treated...
+                    # ... and after that, let's verify if the latter is a correct one or not...
+                    actual_qic_scanned = current_qic_text.split("\n")[0]
+                    if actual_qic_scanned in self.get_list_quality_inspector_codes():
+                        # The QIC is a correct one...
+                        """VERY TEMPORARY"""
+                        print(actual_qic_scanned + " is CORRECT!!!")
+                        """VERY TEMPORARY"""
+                    else:
+                        # Let's close the current window...
+                        self.get_quality_inspector_code_scan_view().close_window()
+                        # ... and open that of the QIC verification...
+                        self.get_quality_inspector_code_verification_view().show_window()
+        except Exception as exception:
+            # At least one error has occurred, therefore, stop the process
+            LOGGER.error(
+                exception.__class__.__name__ + ": " + str(exception)
+                + ". Can't go further with the Barcode Management. "
+            )
+            raise
+
+    def manage_qic_verification_ok_chosen(self):
+        """
+        The Button "Ok" is the chosen one within the Quality Inspector Code Verification window, therefore, we have to
+        re-open the Scan Window once again
+        :return: None
+        """
+        """QIC stands for "Quality Inspector Code" """
+        # Closing the currently opened QIC verification window...
+        self.get_quality_inspector_code_verification_view().close_window()
+        # ... and re-opening that of the QIC scan (after re-initializing the appearance of it of course...)
+        self.get_quality_inspector_code_scan_view().reinitialize_window_appearance()
+        self.get_quality_inspector_code_scan_view().show_window()
+
+    def manage_qic_verification_abort_chosen(self):
+        """
+        The Button "Abort" is the chosen one within the Quality Inspector Code Verification window, therefore, we have
+        to stop the entire Application
+        :return: None
+        """
+        """QIC stands for "Quality Inspector Code" """
+        # Stopping the entire App...
+        sys.exit()
+
     def launch_actual_check_out_process(self, barcode_scanned: str):
         """
         Launching the actual process related to the checking out process.
@@ -241,8 +333,7 @@ class ReworkCheckOUTController:
                     "The Barcode Scanned \"" + barcode_scanned + "\" is a valid one"
                 )
                 # we're going to launch the Check Out treatment in function of the nature of the different processes
-                """TEMPORARY, we'll work on it latter when the right time will come..."""
-                # self.launch_defects_presentation(lines_retrieved)
+                self.launch_processes_treatment()
         except Exception as exception:
             # At least one error has occurred, therefore, stop the process
             LOGGER.error(
@@ -250,3 +341,21 @@ class ReworkCheckOUTController:
                 + ". Can't go further with the Defects Lines Retrieval Process. "
             )
             raise
+
+    def launch_processes_treatment(self):
+        """
+        Launching the specific Treatment related to all the concerned Processes
+        :return: None
+        """
+        # The first step is to launch the specific Treatment related to the Quality Inspector code
+        self.launch_quality_inspector_code_treatment()
+
+    def launch_quality_inspector_code_treatment(self):
+        """
+        Launching the specific Treatment related to the Quality Inspector Code
+        :return: None
+        """
+        # First, let us close the Window for the Order Number's barcode scan
+        self.get_barcode_scan_view().close_window()
+        # Then, let's open that of the Quality Inspector Code scan...
+        self.get_quality_inspector_code_scan_view().show_window()

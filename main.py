@@ -12,10 +12,7 @@ from PRESENTATION.HMI.QUALITY_INSPECTOR_CODE_UI.ui_quality_inspector_code_verifi
 if __name__ == '__main__':
     application = QApplication(sys.argv)
 
-    #controller = ReworkCheckOUTController()
-
-    ui = UIQualityInspectorCodeVerification(QMainWindow())
-    ui.get_main_window().show()
+    controller = ReworkCheckOUTController()
 
     # Application has started...
     LOGGER.info("Check OUT Application has started")

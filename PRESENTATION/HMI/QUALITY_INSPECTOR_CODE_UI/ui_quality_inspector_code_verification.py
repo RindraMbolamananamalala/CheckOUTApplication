@@ -17,6 +17,20 @@ from PRESENTATION.HMI.QUALITY_INSPECTOR_CODE_UI.ui_quality_inspector_code import
 
 class UIQualityInspectorCodeVerification(UIQualityInspectorCode):
 
+    def get_button_ok(self) -> QPushButton:
+        """
+
+        :return: The Button dedicated to the option "OK"
+        """
+        return self.button_ok
+
+    def get_button_abort(self) -> QPushButton:
+        """
+
+        :return: The Button dedicated to the option "Abort"
+        """
+        return self.button_abort
+
     def __init__(self, main_window: QMainWindow):
         """
 
@@ -57,6 +71,7 @@ class UIQualityInspectorCodeVerification(UIQualityInspectorCode):
         self.button_ok.setStyleSheet("background-color: #34393f;"
                                         u" color: white;"
                                         u"border-radius: 20px;")
+        self.button_ok.setCursor(Qt.PointingHandCursor)
         # Abort Button
         self.button_abort = QPushButton(self.area_buttons_for_redirections)
         self.button_abort.setGeometry(QRect(220, 10, 100, 50))
@@ -65,3 +80,4 @@ class UIQualityInspectorCodeVerification(UIQualityInspectorCode):
         self.button_abort.setStyleSheet("background-color: #34393f;"
                                      u" color: white;"
                                      u"border-radius: 20px;")
+        self.button_abort.setCursor(Qt.PointingHandCursor)

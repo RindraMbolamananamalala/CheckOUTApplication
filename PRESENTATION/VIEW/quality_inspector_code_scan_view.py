@@ -38,20 +38,27 @@ class QualityInspectorCodeScanView:
         # At the beginning, let's clear the Window..
         self.clear_window()
 
+    def reinitialize_window_appearance(self):
+        """
+        Re-initializing the appearance of the Quality Inspector Code Scan window
+        :return:
+        """
+        # All we have to do is clear the window...
+        self.clear_window()
+
     def clear_window(self):
         """
         Clearing the content of the Window
         :return:
         """
-        # For the moment, just pass..
-        pass
+        self.get_ui_quality_inspector_code_scan().get_text_barcode().clear()
 
     def show_window(self):
         """
         Displaying the Quality Inspector Code Scan window
         :return: None
         """
-        self.get_ui_quality_inspector_code_scan().get_main_window().showMaximized()
+        self.get_ui_quality_inspector_code_scan().get_main_window().show()
 
     def close_window(self):
         """

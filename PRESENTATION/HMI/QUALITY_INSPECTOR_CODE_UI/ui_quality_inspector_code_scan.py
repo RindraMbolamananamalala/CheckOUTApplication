@@ -17,6 +17,13 @@ from PRESENTATION.HMI.QUALITY_INSPECTOR_CODE_UI.ui_quality_inspector_code import
 
 class UIQualityInspectorCodeScan(UIQualityInspectorCode):
 
+    def get_text_barcode(self) -> QPlainTextEdit:
+        """
+
+        :return: The Text Area dedicated to the Quality Inspector (Bar)Code scan
+        """
+        return self.text_barcode
+
     def __init__(self, main_window: QMainWindow):
         """
 
