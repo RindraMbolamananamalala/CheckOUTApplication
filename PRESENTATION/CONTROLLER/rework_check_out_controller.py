@@ -133,20 +133,22 @@ class ReworkCheckOUTController:
         """
         return self.pft_files_folder_path
 
-    def set_pft_test_reports_folder_path(self, pft_test_reports_folder_path: str):
+    def set_list_pft_test_reports_folder_paths(self, list_pft_test_reports_folder_paths: list):
         """
 
-        :param pft_test_reports_folder_path: The path leading to the Folder dedicated to the Test Reports
+        :param list_pft_test_reports_folder_paths: The list of paths leading to the Folders dedicated to the Test
+        Reports, respectively specific to the PARTS 1-2-2-4-5-6
         :return: None
         """
-        self.pft_test_reports_folder_path = pft_test_reports_folder_path
+        self.list_pft_test_reports_folder_paths = list_pft_test_reports_folder_paths
 
-    def get_pft_test_reports_folder_path(self) -> str:
+    def get_list_pft_test_reports_folder_paths(self) -> list:
         """
 
-        :return: The path leading to the Folder dedicated to the Test Reports
+        :return: The list of paths leading to the Folders dedicated to the Test Reports, respectively specifici to the
+        PARTS 1-2-2-4-5-6
         """
-        return self.pft_test_reports_folder_path
+        return self.list_pft_test_reports_folder_paths
 
     def set_list_pft_station_names(self, list_pft_station_names: list):
         """
@@ -187,7 +189,12 @@ class ReworkCheckOUTController:
 
         # Then, let's load all the Settings' properties from the corresponding .INI file
         self.set_pft_files_folder_path(get_settings_property("pft_files_folder_path"))
-        self.set_pft_test_reports_folder_path(get_settings_property("pft_test_reports_folder_path"))
+        self.set_list_pft_test_reports_folder_paths([])  # First, let's just initialize it with a blank list...
+        for i in range(1, 6 + 1):
+            # ... and then fill it with the different parts that concern respectively the PARTS 1-2-3-4-5-6
+            self.get_list_pft_test_reports_folder_paths().append(
+                get_settings_property("pft_test_reports_part_" + str(i) + "_folder_path")
+            )
         self.set_list_pft_station_names(get_settings_property("list_pft_station_names").split(","))
         self.set_list_quality_inspector_codes(get_settings_property("list_quality_inspector_codes").split(","))
 
