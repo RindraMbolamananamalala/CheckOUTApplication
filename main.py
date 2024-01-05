@@ -9,6 +9,8 @@ from PRESENTATION.CONTROLLER.rework_check_out_controller import ReworkCheckOUTCo
 from PRESENTATION.HMI.QUALITY_INSPECTOR_CODE_UI.ui_quality_inspector_code_scan import UIQualityInspectorCodeScan
 from PRESENTATION.HMI.QUALITY_INSPECTOR_CODE_UI.ui_quality_inspector_code_verification import UIQualityInspectorCodeVerification
 
+from DATA_ACCESS.DAO.IMPL.rework_check_out_application_file_dao_impl import ReworkCheckOUTApplicationFileDAOImpl
+
 if __name__ == '__main__':
     application = QApplication(sys.argv)
 

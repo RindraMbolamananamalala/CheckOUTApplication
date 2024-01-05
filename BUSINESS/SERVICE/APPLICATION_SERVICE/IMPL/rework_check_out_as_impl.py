@@ -8,13 +8,15 @@ dedicated to any need of service by the Application.
 __author__ = "Rindra Mbolamananamalala"
 __email__ = "rindraibi@gmail.com"
 
-
 from CONFIGURATIONS.logger import LOGGER
 
 from BUSINESS.SERVICE.APPLICATION_SERVICE.INTF.rework_check_out_as_intf import ReworkCheckOUTASIntf
 
 from DATA_ACCESS.DAO.INTF.rework_check_out_application_mysql_dao_intf import ReworkCheckOUTApplicationMySQLDAOIntf
+from DATA_ACCESS.DAO.INTF.rework_check_out_application_file_dao_intf import ReworkCheckOUTApplicationFileDAOIntf
+
 from DATA_ACCESS.DAO.IMPL.rework_check_out_application_mysql_dao_impl import ReworkCheckOUTApplicationMySQLDAOImpl
+from DATA_ACCESS.DAO.IMPL.rework_check_out_application_file_dao_impl import ReworkCheckOUTApplicationFileDAOImpl
 
 
 class ReworkCheckOUTASImpl(ReworkCheckOUTASIntf):
@@ -34,9 +36,25 @@ class ReworkCheckOUTASImpl(ReworkCheckOUTASIntf):
         """
         return self.mysql_dao
 
+    def set_file_dao(self, file_dao: ReworkCheckOUTApplicationFileDAOIntf):
+        """
+
+        :param file_dao: The File DAO component to be used by the current Application Service
+        :return: None
+        """
+        self.file_dao = file_dao
+
+    def get_file_dao(self) -> ReworkCheckOUTApplicationFileDAOIntf:
+        """
+
+        :return: The File DAO component used by the current Application Service
+        """
+        return self.file_dao
+
     def __init__(self):
-        # Initializing the MySQL DAO component to be used by the Application Service
+        # Initializing the DAO components to be used by the Application Service
         self.set_mysql_dao(ReworkCheckOUTApplicationMySQLDAOImpl())
+        self.set_file_dao(ReworkCheckOUTApplicationFileDAOImpl())
 
     def is_barcode_valid(self, barcode_scanned):
         """
@@ -64,3 +82,11 @@ class ReworkCheckOUTASImpl(ReworkCheckOUTASIntf):
                 + ". Can't go further with the Barcode's Validity determination process."
             )
             raise
+
+    def get_list_concerned_processes_within_dedicated_file(self, ini_name: str) -> list:
+        """
+
+        :param ini_name: The name of the .ini file dedicated for the processes
+        :return: The list of all the concerned processes contained within a given .ini file dedicated for them
+        """
+        return self.get_file_dao().get_list_concerned_processes_within_dedicated_file(ini_name)

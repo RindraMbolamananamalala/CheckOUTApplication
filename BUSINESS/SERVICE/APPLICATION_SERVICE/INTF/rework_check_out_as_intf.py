@@ -22,3 +22,12 @@ class ReworkCheckOUTASIntf(ABC):
         FALSE otherwise
         """
         pass
+
+    @abstractmethod
+    def get_list_concerned_processes_within_dedicated_file(self, ini_name: str) -> list:
+        """
+
+        :param ini_name: The name of the .ini file dedicated for the processes
+        :return: The list of all the concerned processes contained within a given .ini file dedicated for them
+        """
+        return

@@ -180,6 +180,21 @@ class ReworkCheckOUTController:
         """
         return self.list_quality_inspector_codes
 
+    def set_list_concerned_processes(self, list_concerned_processes: list):
+        """
+
+        :param list_concerned_processes: The list of the Processes Concerned by the current session
+        :return: None
+        """
+        self.list_concerned_processes = list_concerned_processes
+
+    def get_list_concerned_processes(self) -> list:
+        """
+
+        :return: The list of the Processes Concerned by the current session
+        """
+        return self.list_concerned_processes
+
     def __init__(self):
         # First, let's initialize all the View components to be used by the current Controller
         self.set_barcode_scan_view(BarcodeScanView())
@@ -354,6 +369,17 @@ class ReworkCheckOUTController:
         Launching the specific Treatment related to all the concerned Processes
         :return: None
         """
+        # Getting the list of concerned processes, in function of the Order Number being currently treated
+        self.set_list_concerned_processes(
+            self.get_rework_check_out_as().get_list_concerned_processes_within_dedicated_file(
+                self.get_order_number_currently_treated()
+            )
+        )
+        LOGGER.info(
+            "The processes concerned with the "
+                + self.get_order_number_currently_treated() + ".ini file :"
+                + str(self.get_list_concerned_processes())
+        )
         # The first step is to launch the specific Treatment related to the Quality Inspector code
         self.launch_quality_inspector_code_treatment()
 
