@@ -56,7 +56,8 @@ class ReworkCheckOUTController:
         return self.quality_inspector_code_scan_view
 
     def set_quality_inspector_code_verification_view(self
-                                    , quality_inspector_code_verification_view: QualityInspectorCodeVerificationView):
+                                                     ,
+                                                     quality_inspector_code_verification_view: QualityInspectorCodeVerificationView):
         """
 
         :param quality_inspector_code_verification_view: The Quality Inspector Code Verification View to be used by
@@ -124,7 +125,7 @@ class ReworkCheckOUTController:
         :param pft_files_folder_path: The path leading to the PFT Files
         :return: None
         """
-        self.pft_files_folder_path  = pft_files_folder_path
+        self.pft_files_folder_path = pft_files_folder_path
 
     def get_pft_files_folder_path(self) -> str:
         """
@@ -226,8 +227,8 @@ class ReworkCheckOUTController:
         barcode_scan_window = self.get_barcode_scan_view().get_ui_barcode_scan()
         """QIC stands for "Quality Inspector Code" """
         qic_scan_window = self.get_quality_inspector_code_scan_view().get_ui_quality_inspector_code_scan()
-        qic_verification_window = self.get_quality_inspector_code_verification_view()\
-                                        .get_ui_quality_inspector_code_verification()
+        qic_verification_window = self.get_quality_inspector_code_verification_view() \
+            .get_ui_quality_inspector_code_verification()
 
         # Events related to the Text Area dedicated to the Scan of a Barcode of Order Number
         barcode_scan_window.get_text_barcode().textChanged.connect(self.manage_scan_barcode)
@@ -377,8 +378,8 @@ class ReworkCheckOUTController:
         )
         LOGGER.info(
             "The processes concerned with the "
-                + self.get_order_number_currently_treated() + ".ini file :"
-                + str(self.get_list_concerned_processes())
+            + self.get_order_number_currently_treated() + ".ini file :"
+            + str(self.get_list_concerned_processes())
         )
         # The first step is to launch the specific Treatment related to the Quality Inspector code
         self.launch_quality_inspector_code_treatment()
@@ -388,7 +389,24 @@ class ReworkCheckOUTController:
         Launching the specific Treatment related to the Quality Inspector Code
         :return: None
         """
-        # First, let us close the Window for the Order Number's barcode scan
-        self.get_barcode_scan_view().close_window()
-        # Then, let's open that of the Quality Inspector Code scan...
-        self.get_quality_inspector_code_scan_view().show_window()
+        # Only if "Crimping" or "Flat Board" or "USW" is present within the list of concerned processes
+        if "Crimping" in self.get_list_concerned_processes():
+            # First, let us close the Window for the Order Number's barcode scan
+            self.get_barcode_scan_view().close_window()
+            # Then, let's open that of the Quality Inspector Code scan...
+            self.get_quality_inspector_code_scan_view().show_window()
+        else:
+            if "Flat Board" in self.get_list_concerned_processes():
+                # First, let us close the Window for the Order Number's barcode scan
+                self.get_barcode_scan_view().close_window()
+                # Then, let's open that of the Quality Inspector Code scan...
+                self.get_quality_inspector_code_scan_view().show_window()
+            else:
+                if "USW" in self.get_list_concerned_processes():
+                    # First, let us close the Window for the Order Number's barcode scan
+                    self.get_barcode_scan_view().close_window()
+                    # Then, let's open that of the Quality Inspector Code scan...
+                    self.get_quality_inspector_code_scan_view().show_window()
+                else:
+                    # None of the 3 particular processes is present within the list, so, let's just pass..
+                    pass
