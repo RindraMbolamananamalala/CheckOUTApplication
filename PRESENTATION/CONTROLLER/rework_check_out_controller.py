@@ -370,7 +370,8 @@ class ReworkCheckOUTController:
         Launching the specific Treatment related to all the concerned Processes
         :return: None
         """
-        # Getting the list of concerned processes, in function of the Order Number being currently treated
+        # Before anything, let's get the list of concerned processes, in function of the Order Number being currently
+        # treated
         self.set_list_concerned_processes(
             self.get_rework_check_out_as().get_list_concerned_processes_within_dedicated_file(
                 self.get_order_number_currently_treated()
@@ -381,8 +382,11 @@ class ReworkCheckOUTController:
             + self.get_order_number_currently_treated() + ".ini file :"
             + str(self.get_list_concerned_processes())
         )
-        # The first step is to launch the specific Treatment related to the Quality Inspector code
+        # The first step is to launch the specific Treatment related to the Quality Inspector code...
         self.launch_quality_inspector_code_treatment()
+        # ... then, the second step is to launch the analyze all of the test reports that correspond to all the
+        # concerned PART processes
+        self.launch_part_processes_test_reports_analysis()
 
     def launch_quality_inspector_code_treatment(self):
         """
@@ -410,3 +414,33 @@ class ReworkCheckOUTController:
                 else:
                     # None of the 3 particular processes is present within the list, so, let's just pass..
                     pass
+
+    def launch_part_processes_test_reports_analysis(self):
+        # first of all, let's prepare the first bunch of information that we will need
+        actual_order_number = self.get_order_number_currently_treated()[1:]
+        for i in range(1, 6 + 1):
+            if ("Part " + str(i)) in self.get_list_concerned_processes():
+                # Only the concerned PARTs will be taken for this...
+                test_reports_folder_path = get_settings_property("pft_test_reports_part_" + str(i) + "_folder_path")
+                actual_test_reports_file_name = self.get_actual_test_reports_file_name(
+                                                          actual_order_number
+                                                        , test_reports_folder_path
+
+                )
+                actual_test_reports_file_path = test_reports_folder_path + "\\\\" + actual_test_reports_file_name + ".txt"
+                part_i_status = self.get_rework_check_out_as().is_part_process_status_ok(actual_test_reports_file_path)
+                print("Part " + str(i) + " status == " + str(part_i_status))
+
+    def get_actual_test_reports_file_name(self, actual_order_number, test_reports_folder_path: str) -> str:
+        # First of all, let's get the date when the last Check IN was made
+        date_check_in = self.get_rework_check_out_as().get_last_check_in_date(
+            self.get_order_number_currently_treated()
+        )
+        LOGGER.info(
+            "Treating the current Check OUT session for the order number "
+            + actual_order_number
+            + " with the .INI file of the Check IN of "
+            + str(date_check_in)
+        )
+        """"VERY TEMPORARY, will be seriously worked latter"""
+        return actual_order_number + "_" + "202309121258"

@@ -8,6 +8,7 @@ Object (DAO) for any need of CRUD to any classical File by the Application.
 __author__ = "Rindra Mbolamananamalala"
 __email__ = "rindraibi@gmail.com"
 
+import datetime
 from abc import ABC, abstractmethod
 
 
@@ -19,5 +20,24 @@ class ReworkCheckOUTApplicationFileDAOIntf(ABC):
 
         :param ini_name: The name of the .ini file dedicated for the processes
         :return: The list of all the concerned processes contained within a given .ini file dedicated for them
+        """
+        return
+
+    @abstractmethod
+    def get_part_process_status(self, part_test_reports_file_path: str) -> str:
+        """
+        Determining the status of a PART process, which Test Reports file's path has been given in the arguments
+        :param part_test_reports_file_path: The path leading to the Test Reports file corresponding to the concerned
+        PART
+        :return: the status of a so-called PART process within its corresponding file
+        """
+        return
+
+    @abstractmethod
+    def get_last_check_in_date(self, raw_order_number: str) -> datetime.datetime:
+        """
+        Getting the Date when the last check IN corresponding to a given order number has be realized
+        :param raw_order_number: The concerned order number (in a raw format)
+        :return: The Date when the last check IN corresponding to a given order number has been done
         """
         return
