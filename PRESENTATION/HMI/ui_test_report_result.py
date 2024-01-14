@@ -83,6 +83,13 @@ class UITestReportResult(Ui_ReworkCheckOUTWindow):
         """
         return self.list_labels_rework_processes
 
+    def get_label_harness_status(self) -> QLabel:
+        """
+
+        :return: The Label dedicated to the Harness Status
+        """
+        return self.label_harness_status
+
     def __init__(self, main_window: QMainWindow):
         """
 

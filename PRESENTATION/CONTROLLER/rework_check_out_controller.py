@@ -198,6 +198,41 @@ class ReworkCheckOUTController:
         """
         return self.list_concerned_processes
 
+    def set_list_processes_labels_stylesheets(self, list_processes_labels_stylesheets: list):
+        """
+
+        :param list_processes_labels_stylesheets: The list of stylesheets corresponding respectively to each Process
+        Label of the Test Report Result window.
+        Stylesheet [0] <-> "Crimping"
+        , Stylesheet [1] <-> "Flat Board"
+        , Stylesheet [2] <-> "USW"
+        , Stylesheet [3] <-> "Part 1"
+        , Stylesheet [4] <-> "Part 2"
+        , Stylesheet [5] <-> "Part 3"
+        , Stylesheet [6] <-> "Part 4"
+        , Stylesheet [7] <-> "Part 5"
+        , Stylesheet [8] <-> "Part 6"
+        :return: None
+        """
+        self.list_processes_labels_stylesheets = list_processes_labels_stylesheets
+
+    def get_list_processes_labels_stylesheets(self) -> list:
+        """
+
+        :return: The list of stylesheets corresponding respectively to each Process
+        Label of the Test Report Result window.
+        Stylesheet [0] <-> "Crimping"
+        , Stylesheet [1] <-> "Flat Board"
+        , Stylesheet [2] <-> "USW"
+        , Stylesheet [3] <-> "Part 1"
+        , Stylesheet [4] <-> "Part 2"
+        , Stylesheet [5] <-> "Part 3"
+        , Stylesheet [6] <-> "Part 4"
+        , Stylesheet [7] <-> "Part 5"
+        , Stylesheet [8] <-> "Part 6"
+        """
+        return self.list_processes_labels_stylesheets
+
     def __init__(self):
         # First, let's initialize all the View components to be used by the current Controller
         self.set_barcode_scan_view(BarcodeScanView())
@@ -215,6 +250,13 @@ class ReworkCheckOUTController:
             )
         self.set_list_pft_station_names(get_settings_property("list_pft_station_names").split(","))
         self.set_list_quality_inspector_codes(get_settings_property("list_quality_inspector_codes").split(","))
+
+        # Giving default values to the Stylesheets of all the Processes' labels within the dedicated window
+        self.set_list_processes_labels_stylesheets([])
+        process_label_default_stylesheet = self.get_test_report_result_view().get_ui_test_report_result()\
+                                                .get_stylesheet_process_element_not_concerned()
+        for i in range(0, 8 + 1):
+            self.get_list_processes_labels_stylesheets().append(process_label_default_stylesheet)
 
         # Now, Let's initialize the Application Service component used by the same Controller
         self.set_rework_check_out_as(ReworkCheckOUTASImpl())
@@ -395,22 +437,32 @@ class ReworkCheckOUTController:
         Launching the specific Treatment related to the Quality Inspector Code
         :return: None
         """
+        test_reports_result_window = self.get_test_report_result_view().get_ui_test_report_result()
+        stylesheet_process_element_not_concerned = test_reports_result_window\
+                                                    .get_stylesheet_process_element_not_concerned()
+        stylesheet_process_element_concerned = test_reports_result_window.get_stylesheet_process_element_concerned()
         # Only if "Crimping" or "Flat Board" or "USW" is present within the list of concerned processes
         if "Crimping" in self.get_list_concerned_processes():
-            # First, let us close the Window for the Order Number's barcode scan
+            # First, let us close the Window for the Order Number's barcode scan...
             self.get_barcode_scan_view().close_window()
+            # ... and add the "Crimping" label's appropriate stylesheet within the dedicated list...
+            self.get_list_processes_labels_stylesheets()[0] = stylesheet_process_element_concerned
             # Then, let's open that of the Quality Inspector Code scan...
             self.get_quality_inspector_code_scan_view().show_window()
         else:
             if "Flat Board" in self.get_list_concerned_processes():
                 # First, let us close the Window for the Order Number's barcode scan
                 self.get_barcode_scan_view().close_window()
+                # ... and add the "Flat Board" label's appropriate stylesheet within the dedicated list...
+                self.get_list_processes_labels_stylesheets()[1] = stylesheet_process_element_concerned
                 # Then, let's open that of the Quality Inspector Code scan...
                 self.get_quality_inspector_code_scan_view().show_window()
             else:
                 if "USW" in self.get_list_concerned_processes():
                     # First, let us close the Window for the Order Number's barcode scan
                     self.get_barcode_scan_view().close_window()
+                    # ... and add the "USW" label's appropriate stylesheet within the dedicated list...
+                    self.get_list_processes_labels_stylesheets()[2] = stylesheet_process_element_concerned
                     # Then, let's open that of the Quality Inspector Code scan...
                     self.get_quality_inspector_code_scan_view().show_window()
                 else:
@@ -423,8 +475,11 @@ class ReworkCheckOUTController:
         :return: None
         """
         try:
-            # first of all, let's prepare the first bunch of information that we will need
+            # first of all, let's prepare the first bunch of information & values that we will need
             actual_order_number = self.get_order_number_currently_treated()[1:]
+            test_reports_result_window = self.get_test_report_result_view().get_ui_test_report_result()
+            stylesheet_process_element_nok = test_reports_result_window.get_stylesheet_process_nok()
+            stylesheet_process_element_ok = test_reports_result_window.get_stylesheet_process_ok()
             for i in range(1, 6 + 1):
                 if ("Part " + str(i)) in self.get_list_concerned_processes():
                     # Only the concerned PARTs will be taken for this...
@@ -440,8 +495,16 @@ class ReworkCheckOUTController:
                     part_i_status = self.get_rework_check_out_as().is_part_process_status_ok(
                         actual_test_reports_file_path
                     )
-                    "VERY TEMPORARY"
-                    print("PART " + str(i) + " STATUS = " + str(part_i_status))
+                    # Updating the Stylesheets of all the processes' labels in function of all the recently-determined
+                    # status
+                    if part_i_status:
+                        # OK status, label in GREEN
+                        self.get_list_processes_labels_stylesheets()[2 + i] = stylesheet_process_element_ok
+                    else:
+                        # NOK status, label in RED
+                        self.get_list_processes_labels_stylesheets()[2 + i] = stylesheet_process_element_nok
+            # After all of this, it's time to launch the processes' test reports visualization
+            self.launch_processes_test_reports_visualization()
         except Exception as exception:
             # At least one error has occurred, therefore, stop the process
             LOGGER.error(
@@ -509,3 +572,30 @@ class ReworkCheckOUTController:
                 + ". Can't go further with the Test Reports' file name Retrieval Process. "
             )
             raise
+
+    def launch_processes_test_reports_visualization(self):
+        """
+        Launching the Visualization step of the Processes' Tests Reports
+        :return: None
+        """
+        # First, let's update all the stylesheets that correspond to each of the Processes' labels...
+        test_report_result_view = self.get_test_report_result_view()
+        test_report_result_window = test_report_result_view.get_ui_test_report_result()
+        i = 0
+        are_all_part_processes_status_ok = True
+        for process_label in test_report_result_window.get_list_labels_rework_processes():
+            stylesheet_to_apply = self.get_list_processes_labels_stylesheets()[i]
+            process_label.setStyleSheet(stylesheet_to_apply)
+            if stylesheet_to_apply == test_report_result_window.get_stylesheet_process_nok():
+                # The current Part Process has a NOK status...
+                are_all_part_processes_status_ok = (are_all_part_processes_status_ok and False)
+            i = i + 1
+        # ... then, let's give the text value to the label for the Harness status
+        if are_all_part_processes_status_ok:
+            # All the parts Status are OK
+            test_report_result_window.get_label_harness_status().setText("Harness OK")
+        else:
+            # At least one part Status is Not OK
+            test_report_result_window.get_label_harness_status().setText("Harness NOK")
+        # Then, let's show the window..
+        test_report_result_view.show_window()
