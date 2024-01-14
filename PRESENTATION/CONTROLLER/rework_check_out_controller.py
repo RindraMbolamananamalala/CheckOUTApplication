@@ -8,6 +8,8 @@ within the "PRESENTATION" layer of the Project.
 __author__ = "Rindra Mbolamananamalala"
 __email__ = "rindraibi@gmail.com"
 
+import datetime
+import os
 import sys
 
 from CONFIGURATIONS.logger import LOGGER
@@ -416,31 +418,94 @@ class ReworkCheckOUTController:
                     pass
 
     def launch_part_processes_test_reports_analysis(self):
-        # first of all, let's prepare the first bunch of information that we will need
-        actual_order_number = self.get_order_number_currently_treated()[1:]
-        for i in range(1, 6 + 1):
-            if ("Part " + str(i)) in self.get_list_concerned_processes():
-                # Only the concerned PARTs will be taken for this...
-                test_reports_folder_path = get_settings_property("pft_test_reports_part_" + str(i) + "_folder_path")
-                actual_test_reports_file_name = self.get_actual_test_reports_file_name(
-                                                          actual_order_number
-                                                        , test_reports_folder_path
-
-                )
-                actual_test_reports_file_path = test_reports_folder_path + "\\\\" + actual_test_reports_file_name + ".txt"
-                part_i_status = self.get_rework_check_out_as().is_part_process_status_ok(actual_test_reports_file_path)
-                print("Part " + str(i) + " status == " + str(part_i_status))
+        """
+        Launching the Analysis of the Part Processes' tests reports
+        :return: None
+        """
+        try:
+            # first of all, let's prepare the first bunch of information that we will need
+            actual_order_number = self.get_order_number_currently_treated()[1:]
+            for i in range(1, 6 + 1):
+                if ("Part " + str(i)) in self.get_list_concerned_processes():
+                    # Only the concerned PARTs will be taken for this...
+                    test_reports_folder_path = get_settings_property("pft_test_reports_part_" + str(i) + "_folder_path")
+                    actual_test_reports_file_name = self.get_actual_test_reports_file_name(
+                                                              actual_order_number
+                                                            , test_reports_folder_path
+                    )
+                    actual_test_reports_file_path = test_reports_folder_path \
+                                                        + "\\\\" \
+                                                        + actual_test_reports_file_name + ".txt"
+                    LOGGER.info("The file path of the Test Report to be treated is : " + actual_test_reports_file_path)
+                    part_i_status = self.get_rework_check_out_as().is_part_process_status_ok(
+                        actual_test_reports_file_path
+                    )
+                    "VERY TEMPORARY"
+                    print("PART " + str(i) + " STATUS = " + str(part_i_status))
+        except Exception as exception:
+            # At least one error has occurred, therefore, stop the process
+            LOGGER.error(
+                exception.__class__.__name__ + ": " + str(exception)
+                + ". Can't go further with the Test Reports' file name Retrieval Process. "
+            )
+            raise
 
     def get_actual_test_reports_file_name(self, actual_order_number, test_reports_folder_path: str) -> str:
-        # First of all, let's get the date when the last Check IN was made
-        date_check_in = self.get_rework_check_out_as().get_last_check_in_date(
-            self.get_order_number_currently_treated()
-        )
-        LOGGER.info(
-            "Treating the current Check OUT session for the order number "
-            + actual_order_number
-            + " with the .INI file of the Check IN of "
-            + str(date_check_in)
-        )
-        """"VERY TEMPORARY, will be seriously worked latter"""
-        return actual_order_number + "_" + "202309121258"
+        """
+        Determining the name of the actual Test Reports' file to be used for the Check OUT in function of a given PART
+        folder
+        :param actual_order_number: The Actual order number for the treatment
+        :param test_reports_folder_path: The concerned PART folder's path
+        :return: The name of the actual Test Reports' file to be used for the Check OUT corresponding to the PART
+        specified within the arguments (its folder's path)
+        """
+        try:
+            # First of all, let's get the date when the last Check IN was made
+            date_check_in = self.get_rework_check_out_as().get_last_check_in_date(
+                self.get_order_number_currently_treated()
+            )
+            LOGGER.info(
+                "Treating the current Check OUT session for the order number "
+                + actual_order_number
+                + " with the .INI file of the Check IN of "
+                + str(date_check_in)
+            )
+            # Now, it's time to chose which Test Report file (file's name) will be concerned by the Treatment
+            most_recent_test_report_file_date = datetime.datetime.strptime("0001 01 01", "%Y %m %d")  # Initializing the
+            most_recent_test_report_file = None
+            # date se selector with an initial value
+            for file_name in os.listdir(test_reports_folder_path):
+                if file_name.startswith(actual_order_number + "_"):
+                    # Only the files which names begin with the current order number are concerned
+
+                    # Getting the part dedicated to the date within the file name and converting it into an actual Date
+                    file_date_str = file_name.split("_")[1].replace(".txt", "")
+                    file_date_year_str = file_date_str[0:4]
+                    file_date_month_str = file_date_str[4:6]
+                    file_date_day_str = file_date_str[6:8]
+                    file_date_hour_str = file_date_str[8:10]
+                    file_date_min_str = file_date_str[10:12]
+                    file_date_str_formatted = file_date_year_str + " " + file_date_month_str + " " + file_date_day_str\
+                                                + " " + file_date_hour_str + " " + file_date_min_str
+                    file_date = datetime.datetime.strptime(file_date_str_formatted, "%Y %m %d %H %M")
+                    if file_date > date_check_in:
+                        # Only the Test Report file with a date more recent than that of the check IN will be
+                        # concerned...
+                        # ... and only the most recent one will be kept...
+                        if file_date > most_recent_test_report_file_date:
+                            most_recent_test_report_file_date = file_date
+                            most_recent_test_report_file = file_name
+            if most_recent_test_report_file is not None:
+                return most_recent_test_report_file.replace(".txt", "")
+            raise Exception(
+                "No valid Test report file corresponding to the order number "
+                    + self.get_order_number_currently_treated()
+                    + "has been found"
+            )
+        except Exception as exception:
+            # At least one error has occurred, therefore, stop the process
+            LOGGER.error(
+                exception.__class__.__name__ + ": " + str(exception)
+                + ". Can't go further with the Test Reports' file name Retrieval Process. "
+            )
+            raise
