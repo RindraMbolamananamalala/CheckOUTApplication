@@ -253,8 +253,8 @@ class ReworkCheckOUTController:
 
         # Giving default values to the Stylesheets of all the Processes' labels within the dedicated window
         self.set_list_processes_labels_stylesheets([])
-        process_label_default_stylesheet = self.get_test_report_result_view().get_ui_test_report_result()\
-                                                .get_stylesheet_process_element_not_concerned()
+        process_label_default_stylesheet = self.get_test_report_result_view().get_ui_test_report_result() \
+            .get_stylesheet_process_element_not_concerned()
         for i in range(0, 8 + 1):
             self.get_list_processes_labels_stylesheets().append(process_label_default_stylesheet)
 
@@ -340,10 +340,14 @@ class ReworkCheckOUTController:
                     actual_qic_scanned = current_qic_text.split("\n")[0]
                     if actual_qic_scanned in self.get_list_quality_inspector_codes():
                         # The QIC is a correct one...
-                        """VERY TEMPORARY"""
-                        print(actual_qic_scanned + " is CORRECT!!!")
-                        """VERY TEMPORARY"""
+                        LOGGER.info("The scanned Quality Inspector Code " + actual_qic_scanned + " is a correct one")
+                        # ... so, first, let's close the window...
+                        self.get_quality_inspector_code_scan_view().close_window()
+                        # ... and proceed to the launch of the PART processes Test Reports Analysis
+                        self.launch_part_processes_test_reports_analysis()
                     else:
+                        # The QIC is a wrong one...
+                        LOGGER.info("The scanned Quality Inspector Code " + actual_qic_scanned + " is a wrong one")
                         # Let's close the current window...
                         self.get_quality_inspector_code_scan_view().close_window()
                         # ... and open that of the QIC verification...
@@ -427,10 +431,16 @@ class ReworkCheckOUTController:
             + str(self.get_list_concerned_processes())
         )
         # The first step is to launch the specific Treatment related to the Quality Inspector code...
-        self.launch_quality_inspector_code_treatment()
-        # ... then, the second step is to launch the analyze all of the test reports that correspond to all the
-        # concerned PART processes
-        self.launch_part_processes_test_reports_analysis()
+        if "Crimping" in self.get_list_concerned_processes() \
+                or "Flat Board" in self.get_list_concerned_processes() \
+                or "USW" in self.get_list_concerned_processes():
+            # At least one of the "Non-part" processes is concerned, so we can start the treatment...
+            self.launch_quality_inspector_code_treatment()
+        else:
+            # At least one of the "Non-part" processes is concerned, so let's jump directly to the PART Processes
+            # Test Reports Analysis (after closing the current window of course)
+            self.get_barcode_scan_view().close_window()
+            self.launch_part_processes_test_reports_analysis()
 
     def launch_quality_inspector_code_treatment(self):
         """
@@ -438,8 +448,8 @@ class ReworkCheckOUTController:
         :return: None
         """
         test_reports_result_window = self.get_test_report_result_view().get_ui_test_report_result()
-        stylesheet_process_element_not_concerned = test_reports_result_window\
-                                                    .get_stylesheet_process_element_not_concerned()
+        stylesheet_process_element_not_concerned = test_reports_result_window \
+            .get_stylesheet_process_element_not_concerned()
         stylesheet_process_element_concerned = test_reports_result_window.get_stylesheet_process_element_concerned()
         # Only if "Crimping" or "Flat Board" or "USW" is present within the list of concerned processes
         if "Crimping" in self.get_list_concerned_processes():
@@ -485,12 +495,12 @@ class ReworkCheckOUTController:
                     # Only the concerned PARTs will be taken for this...
                     test_reports_folder_path = get_settings_property("pft_test_reports_part_" + str(i) + "_folder_path")
                     actual_test_reports_file_name = self.get_actual_test_reports_file_name(
-                                                              actual_order_number
-                                                            , test_reports_folder_path
+                        actual_order_number
+                        , test_reports_folder_path
                     )
                     actual_test_reports_file_path = test_reports_folder_path \
-                                                        + "\\\\" \
-                                                        + actual_test_reports_file_name + ".txt"
+                                                    + "\\\\" \
+                                                    + actual_test_reports_file_name + ".txt"
                     LOGGER.info("The file path of the Test Report to be treated is : " + actual_test_reports_file_path)
                     part_i_status = self.get_rework_check_out_as().is_part_process_status_ok(
                         actual_test_reports_file_path
@@ -548,8 +558,8 @@ class ReworkCheckOUTController:
                     file_date_day_str = file_date_str[6:8]
                     file_date_hour_str = file_date_str[8:10]
                     file_date_min_str = file_date_str[10:12]
-                    file_date_str_formatted = file_date_year_str + " " + file_date_month_str + " " + file_date_day_str\
-                                                + " " + file_date_hour_str + " " + file_date_min_str
+                    file_date_str_formatted = file_date_year_str + " " + file_date_month_str + " " + file_date_day_str \
+                                              + " " + file_date_hour_str + " " + file_date_min_str
                     file_date = datetime.datetime.strptime(file_date_str_formatted, "%Y %m %d %H %M")
                     if file_date > date_check_in:
                         # Only the Test Report file with a date more recent than that of the check IN will be
@@ -562,8 +572,8 @@ class ReworkCheckOUTController:
                 return most_recent_test_report_file.replace(".txt", "")
             raise Exception(
                 "No valid Test report file corresponding to the order number "
-                    + self.get_order_number_currently_treated()
-                    + "has been found"
+                + self.get_order_number_currently_treated()
+                + "has been found"
             )
         except Exception as exception:
             # At least one error has occurred, therefore, stop the process
