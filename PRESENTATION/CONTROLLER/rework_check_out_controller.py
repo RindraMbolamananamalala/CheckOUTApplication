@@ -12,6 +12,8 @@ import datetime
 import os
 import sys
 
+from PyQt5 import QtTest
+
 from CONFIGURATIONS.logger import LOGGER
 from CONFIGURATIONS.settings_properties import get_settings_property
 
@@ -251,21 +253,14 @@ class ReworkCheckOUTController:
         self.set_list_pft_station_names(get_settings_property("list_pft_station_names").split(","))
         self.set_list_quality_inspector_codes(get_settings_property("list_quality_inspector_codes").split(","))
 
-        # Giving default values to the Stylesheets of all the Processes' labels within the dedicated window
-        self.set_list_processes_labels_stylesheets([])
-        process_label_default_stylesheet = self.get_test_report_result_view().get_ui_test_report_result() \
-            .get_stylesheet_process_element_not_concerned()
-        for i in range(0, 8 + 1):
-            self.get_list_processes_labels_stylesheets().append(process_label_default_stylesheet)
-
         # Now, Let's initialize the Application Service component used by the same Controller
         self.set_rework_check_out_as(ReworkCheckOUTASImpl())
 
         # Let's manage all the events
         self.manage_events()
 
-        # Now, let's start the Check OUT...
-        self.start_check_out()
+        # Now, let's start the first App Cycle
+        self.start_cycle()
 
     def manage_events(self):
         barcode_scan_window = self.get_barcode_scan_view().get_ui_barcode_scan()
@@ -285,6 +280,22 @@ class ReworkCheckOUTController:
 
         # Events related to the "Abort" button of the Quality Inspector Code Verification window
         qic_verification_window.get_button_abort().clicked.connect(self.manage_qic_verification_abort_chosen)
+
+    def start_cycle(self):
+        """
+        Starting a (new) cycle of the Application
+        :return: None
+        """
+        LOGGER.info("A new cycle of the Application has started")
+        # First, let's give default values to the Stylesheets of all the Processes' labels within the dedicated window
+        self.set_list_processes_labels_stylesheets([])
+        process_label_default_stylesheet = self.get_test_report_result_view().get_ui_test_report_result() \
+            .get_stylesheet_process_element_not_concerned()
+        for i in range(0, 8 + 1):
+            self.get_list_processes_labels_stylesheets().append(process_label_default_stylesheet)
+
+        # Then, let's start the Check OUT...
+        self.start_check_out()
 
     def start_check_out(self):
         """
@@ -609,3 +620,13 @@ class ReworkCheckOUTController:
             test_report_result_window.get_label_harness_status().setText("Harness NOK")
         # Then, let's show the window..
         test_report_result_view.show_window()
+        if not are_all_part_processes_status_ok:
+            # If the status is a "Harness NOK", the windows is only appearing during 5 seconds, a new App's cycle
+            # begins
+            QtTest.QTest.qWait(4000)
+            test_report_result_view.close_window()
+            # Re-starting the cycle...
+            self.start_cycle()
+
+
+
