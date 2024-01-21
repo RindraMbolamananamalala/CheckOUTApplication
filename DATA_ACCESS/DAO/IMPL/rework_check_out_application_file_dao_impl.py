@@ -183,3 +183,36 @@ class ReworkCheckOUTApplicationFileDAOImpl(ReworkCheckOUTApplicationFileDAOIntf)
                 + ". Can't go further with the Last Check IN's Date fetching Process. "
             )
             raise
+
+    def read_prn_file_content(self, prn_file_path: str) -> str:
+        """
+        Reading and returning the whole content of a given .prn file
+        :param: prn_file_path : The path leading to the .prn file
+        :return:
+        """
+        try:
+            prn_file = open(prn_file_path, "r")
+            return str((prn_file.read()))
+        except Exception as exception:
+            # At least one error has occurred, therefore, stop the process
+            LOGGER.error(
+                exception.__class__.__name__ + ": " + str(exception)
+                + ". Can't go further with the reading from a PRN file Process. "
+            )
+
+    def write_inside_prn_file(self, prn_file_path: str, content: str) -> None:
+        """
+        Writing a text inside a given .prn file
+        :param: prn_file_path : The path leading to the .prn file
+        :param: content: The content to be written
+        :return: None
+        """
+        try:
+            prn_file = open(prn_file_path, "w")
+            prn_file.write(content)
+        except Exception as exception:
+            # At least one error has occurred, therefore, stop the process
+            LOGGER.error(
+                exception.__class__.__name__ + ": " + str(exception)
+                + ". Can't go further with the writing within a PRN file Process. "
+            )

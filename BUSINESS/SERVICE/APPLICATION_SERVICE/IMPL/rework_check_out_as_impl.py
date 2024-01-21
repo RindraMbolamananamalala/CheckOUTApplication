@@ -10,7 +10,10 @@ __email__ = "rindraibi@gmail.com"
 
 import datetime
 
+from UTILS.time_utils import get_current_date, get_current_time
+
 from CONFIGURATIONS.logger import LOGGER
+from CONFIGURATIONS.application_properties import get_application_property
 
 from BUSINESS.SERVICE.APPLICATION_SERVICE.INTF.rework_check_out_as_intf import ReworkCheckOUTASIntf
 
@@ -118,5 +121,37 @@ class ReworkCheckOUTASImpl(ReworkCheckOUTASIntf):
             LOGGER.error(
                 exception.__class__.__name__ + ": " + str(exception)
                 + ". Can't go further with the Last Check IN's Date fetching Process. "
+            )
+            raise
+
+    def launch_print_process(self, raw_order_number: str) -> None:
+        """
+        Launching the printing process
+        :param raw_order_number: The concerned order number (in a raw format) that will be concerned by the current
+        printing process
+        :return: None
+        """
+        try:
+            # First, let's load the content of the .prn file's template for the print ...
+            prn_file_template_path = get_application_property("prn_file_template_path")
+            prn_file_template_content = self.get_file_dao().read_prn_file_content(prn_file_template_path)
+            # Then, let's fill each variables inside it with their respective values
+            prn_file_new_content = prn_file_template_content.replace("@VAR1@", raw_order_number)
+            prn_file_new_content = prn_file_new_content.replace("@VAR2@", raw_order_number)
+            current_date = get_current_date("%Y-%m-%d")
+            current_time = get_current_time("%H:%M:%S")
+            prn_file_new_content = prn_file_new_content.replace("@VAR3@", current_time)
+            prn_file_new_content = prn_file_new_content.replace("@VAR4@", current_date)
+            # After that, we have to create a copy of this template, and inside it we put the new version of the content
+            self.get_file_dao().write_inside_prn_file(
+                prn_file_template_path.replace(".prn", "_copy.prn"), prn_file_new_content
+            )
+            # Then, we have to call for the App.exe that will print this copy above
+            """WE'LL work on it seriously later..."""
+        except Exception as exception:
+            # At least one error has occurred, therefore, stop the process
+            LOGGER.error(
+                exception.__class__.__name__ + ": " + str(exception)
+                + ". Can't go further with the PRN file Printing Process. "
             )
             raise

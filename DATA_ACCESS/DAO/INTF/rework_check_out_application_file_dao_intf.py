@@ -41,3 +41,22 @@ class ReworkCheckOUTApplicationFileDAOIntf(ABC):
         :return: The Date when the last check IN corresponding to a given order number has been done
         """
         return
+
+    @abstractmethod
+    def read_prn_file_content(self, prn_file_path: str) -> str:
+        """
+        Reading and returning the whole content of a given .prn file
+        :param: prn_file_path : The path leading to the .prn file
+        :return: None
+        """
+        return
+
+    @abstractmethod
+    def write_inside_prn_file(self, prn_file_path: str, content: str) -> None:
+        """
+        Writing a text inside a given .prn file
+        :param: prn_file_path : The path leading to the .prn file
+        :param: content: The content to be written
+        :return: None
+        """
+        pass

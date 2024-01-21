@@ -620,13 +620,19 @@ class ReworkCheckOUTController:
             test_report_result_window.get_label_harness_status().setText("Harness NOK")
         # Then, let's show the window..
         test_report_result_view.show_window()
-        if not are_all_part_processes_status_ok:
+        if are_all_part_processes_status_ok:
+            # If the status is a "Harness NOK", the windows is only appearing during 5 seconds, and then launching
+            # the printing process
+            QtTest.QTest.qWait(5000)
+            test_report_result_view.close_window()
+            # Launching the printing process
+            self.get_rework_check_out_as().launch_print_process(self.get_order_number_currently_treated())
+        else:
             # If the status is a "Harness NOK", the windows is only appearing during 5 seconds, and then a new App's
             # cycle begins
-            QtTest.QTest.qWait(4000)
+            QtTest.QTest.qWait(5000)
             test_report_result_view.close_window()
             # Re-starting the cycle...
             self.start_cycle()
-
 
 

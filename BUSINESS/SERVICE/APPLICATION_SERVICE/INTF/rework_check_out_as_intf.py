@@ -52,3 +52,13 @@ class ReworkCheckOUTASIntf(ABC):
         :return: The Date when the last check IN corresponding to a given order number has been done
         """
         return
+
+    @abstractmethod
+    def launch_print_process(self, raw_order_number: str) -> None:
+        """
+        Launching the printing process
+        :param raw_order_number: The concerned order number (in a raw format) that will be concerned by the current
+        printing process
+        :return: None
+        """
+        pass
