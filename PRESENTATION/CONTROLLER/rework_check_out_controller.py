@@ -621,8 +621,8 @@ class ReworkCheckOUTController:
         # Then, let's show the window..
         test_report_result_view.show_window()
         if not are_all_part_processes_status_ok:
-            # If the status is a "Harness NOK", the windows is only appearing during 5 seconds, a new App's cycle
-            # begins
+            # If the status is a "Harness NOK", the windows is only appearing during 5 seconds, and then a new App's
+            # cycle begins
             QtTest.QTest.qWait(4000)
             test_report_result_view.close_window()
             # Re-starting the cycle...
