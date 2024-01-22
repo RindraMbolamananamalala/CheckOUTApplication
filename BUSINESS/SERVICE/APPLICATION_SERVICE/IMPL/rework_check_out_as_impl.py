@@ -9,6 +9,7 @@ __author__ = "Rindra Mbolamananamalala"
 __email__ = "rindraibi@gmail.com"
 
 import datetime
+import subprocess
 
 from UTILS.time_utils import get_current_date, get_current_time
 
@@ -147,7 +148,9 @@ class ReworkCheckOUTASImpl(ReworkCheckOUTASIntf):
                 prn_file_template_path.replace(".prn", "_copy.prn"), prn_file_new_content
             )
             # Then, we have to call for the App.exe that will print this copy above
-            """WE'LL work on it seriously later..."""
+            app_path = get_application_property("printing_app_exe_path")  # Getting the path to the .exe
+            app_path = app_path.replace("\\", "/")  # Standardizing the App's path
+            subprocess.call(app_path, shell=True)  # Actual call
         except Exception as exception:
             # At least one error has occurred, therefore, stop the process
             LOGGER.error(
