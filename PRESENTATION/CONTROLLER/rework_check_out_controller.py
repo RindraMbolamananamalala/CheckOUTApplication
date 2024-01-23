@@ -43,6 +43,21 @@ class ReworkCheckOUTController:
         """
         return self.barcode_scan_view
 
+    def set_barcode_verification_view(self, barcode_verification_view: BarcodeScanView):
+        """
+
+        :param barcode_verification_view: The Barcode Verification View to be used by the current Controller
+        :return: None
+        """
+        self.barcode_verification_view = barcode_verification_view
+
+    def get_barcode_verification_view(self) -> BarcodeScanView:
+        """
+
+        :return: The Barcode Verification View used by the current Controller
+        """
+        return self.barcode_verification_view
+
     def set_quality_inspector_code_scan_view(self, quality_inspector_code_scan_view: QualityInspectorCodeScanView):
         """
 
@@ -241,6 +256,7 @@ class ReworkCheckOUTController:
         self.set_quality_inspector_code_scan_view(QualityInspectorCodeScanView())
         self.set_quality_inspector_code_verification_view(QualityInspectorCodeVerificationView())
         self.set_test_report_result_view(TestReportResultView())
+        self.set_barcode_verification_view(BarcodeScanView())
 
         # Then, let's load all the Settings' properties from the corresponding .INI file
         self.set_pft_files_folder_path(get_settings_property("pft_files_folder_path"))
@@ -264,6 +280,7 @@ class ReworkCheckOUTController:
 
     def manage_events(self):
         barcode_scan_window = self.get_barcode_scan_view().get_ui_barcode_scan()
+        barcode_verification_window = self.get_barcode_verification_view().get_ui_barcode_scan()
         """QIC stands for "Quality Inspector Code" """
         qic_scan_window = self.get_quality_inspector_code_scan_view().get_ui_quality_inspector_code_scan()
         qic_verification_window = self.get_quality_inspector_code_verification_view() \
@@ -271,6 +288,9 @@ class ReworkCheckOUTController:
 
         # Events related to the Text Area dedicated to the Scan of a Barcode of Order Number
         barcode_scan_window.get_text_barcode().textChanged.connect(self.manage_scan_barcode)
+
+        # Events related to the Text Area dedicated to the Verification of a Barcode of Order Number
+        barcode_verification_window.get_text_barcode().textChanged.connect(self.manage_verification_barcode)
 
         # Events related to the Text Area dedicated to the Scan of the Quality Inspector Code
         qic_scan_window.get_text_barcode().textChanged.connect(self.manage_scan_qic)
@@ -627,6 +647,8 @@ class ReworkCheckOUTController:
             test_report_result_view.close_window()
             # Launching the printing process
             self.get_rework_check_out_as().launch_print_process(self.get_order_number_currently_treated())
+            # Once the printing process is done, let's confirm the newly printed barcode
+            self.launch_barcode_verification()
         else:
             # If the status is a "Harness NOK", the windows is only appearing during 5 seconds, and then a new App's
             # cycle begins
@@ -634,5 +656,48 @@ class ReworkCheckOUTController:
             test_report_result_view.close_window()
             # Re-starting the cycle...
             self.start_cycle()
+
+    def launch_barcode_verification(self):
+        # Opening the window for the scanning of the Order Number to be verified
+        self.get_barcode_verification_view().show_window()
+
+    def manage_verification_barcode(self):
+        """
+        Identifying if a complete string for an Order Number is present within the Barcode being scanned, and then
+        launching the verification process
+        :return: None
+        """
+        try:
+            barcode_verification_window = self.get_barcode_verification_view().get_ui_barcode_scan()
+            current_barcode_text = barcode_verification_window.get_text_barcode().toPlainText()
+            if len(current_barcode_text) > 0:
+                # First, reinitializing the appearance of the Barcode Verification Window
+                self.get_barcode_verification_view().reinitialize_window_appearance()
+                if "\n" in current_barcode_text:
+                    # A complete string for an Order Number was found.. It's the Order Number to be verified
+                    # ... and then, let's launch the actual check out process...
+                    actual_barcode_to_be_verified_raw = current_barcode_text.split("\n")[0]
+                    # The barcode being scanned is valid only if it is equal to the one scanned at the very beginning of
+                    # app
+                    if actual_barcode_to_be_verified_raw == self.get_order_number_currently_treated():
+                        # The barcode is valid... we can start the archiving process related to the .ini file
+                        self.launch_ini_file_archiving_process()
+                    else:
+                        # The barcode is not valid... so let's ask the user if he/she wants to re-print the file or not
+                        self.launch_reprinting_asking_process()
+        except Exception as exception:
+            # At least one error has occurred, therefore, stop the process
+            LOGGER.error(
+                exception.__class__.__name__ + ": " + str(exception)
+                + ". Can't go further with the Barcode Management. "
+            )
+            raise
+
+    def launch_ini_file_archiving_process(self):
+        LOGGER.info("Archiving the .ini file : \"" + self.get_order_number_currently_treated() + ".ini\"")
+
+    def launch_reprinting_asking_process(self):
+        print("Would you like to reprint the file?")
+
 
 
