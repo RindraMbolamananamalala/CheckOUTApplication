@@ -21,6 +21,7 @@ from PRESENTATION.VIEW.barcode_scan_view import BarcodeScanView
 from PRESENTATION.VIEW.quality_inspector_code_scan_view import QualityInspectorCodeScanView
 from PRESENTATION.VIEW.quality_inspector_code_verification_view import QualityInspectorCodeVerificationView
 from PRESENTATION.VIEW.test_report_result_view import TestReportResultView
+from PRESENTATION.VIEW.asking_for_reprinting_view import AskingForReprintingView
 
 from BUSINESS.SERVICE.APPLICATION_SERVICE.INTF.rework_check_out_as_intf import ReworkCheckOUTASIntf
 from BUSINESS.SERVICE.APPLICATION_SERVICE.IMPL.rework_check_out_as_impl import ReworkCheckOUTASImpl
@@ -106,6 +107,21 @@ class ReworkCheckOUTController:
         :return: The Test Report View used by the current Controller
         """
         return self.test_report_result_view
+
+    def set_asking_for_reprinting_view(self, asking_for_reprinting_view: AskingForReprintingView):
+        """
+
+        :param asking_for_reprinting_view: The "Asking For Reprinting" view to be used by the Controller
+        :return:
+        """
+        self.asking_for_reprinting_view = asking_for_reprinting_view
+
+    def get_asking_for_reprinting_view(self) -> AskingForReprintingView:
+        """
+
+        :return: The "Asking For Reprinting" view used by the Controller
+        """
+        return self.asking_for_reprinting_view
 
     def set_rework_check_out_as(self, rework_check_out_as: ReworkCheckOUTASIntf):
         """
@@ -257,6 +273,7 @@ class ReworkCheckOUTController:
         self.set_quality_inspector_code_verification_view(QualityInspectorCodeVerificationView())
         self.set_test_report_result_view(TestReportResultView())
         self.set_barcode_verification_view(BarcodeScanView())
+        self.set_asking_for_reprinting_view(AskingForReprintingView())
 
         # Then, let's load all the Settings' properties from the corresponding .INI file
         self.set_pft_files_folder_path(get_settings_property("pft_files_folder_path"))
@@ -281,6 +298,7 @@ class ReworkCheckOUTController:
     def manage_events(self):
         barcode_scan_window = self.get_barcode_scan_view().get_ui_barcode_scan()
         barcode_verification_window = self.get_barcode_verification_view().get_ui_barcode_scan()
+        asking_for_reprinting_window = self.get_asking_for_reprinting_view().get_ui_asking_for_reprinting()
         """QIC stands for "Quality Inspector Code" """
         qic_scan_window = self.get_quality_inspector_code_scan_view().get_ui_quality_inspector_code_scan()
         qic_verification_window = self.get_quality_inspector_code_verification_view() \
@@ -300,6 +318,12 @@ class ReworkCheckOUTController:
 
         # Events related to the "Abort" button of the Quality Inspector Code Verification window
         qic_verification_window.get_button_abort().clicked.connect(self.manage_qic_verification_abort_chosen)
+
+        # Events related to the "OK" button of the Asking For Reprinting window
+        asking_for_reprinting_window.get_button_ok().clicked.connect(self.manage_reprinting_ok_chosen)
+
+        # Events related to the "Abort" button of the Asking For Reprinting window
+        asking_for_reprinting_window.get_button_abort().clicked.connect(self.manage_reprinting_abort_chosen)
 
     def start_cycle(self):
         """
@@ -645,10 +669,8 @@ class ReworkCheckOUTController:
             # the printing process
             QtTest.QTest.qWait(5000)
             test_report_result_view.close_window()
-            # Launching the printing process
-            self.get_rework_check_out_as().launch_print_process(self.get_order_number_currently_treated())
-            # Once the printing process is done, let's confirm the newly printed barcode
-            self.launch_barcode_verification()
+            # Launching the printing & verification processes
+            self.launch_printing_and_verification_process()
         else:
             # If the status is a "Harness NOK", the windows is only appearing during 5 seconds, and then a new App's
             # cycle begins
@@ -684,6 +706,14 @@ class ReworkCheckOUTController:
                         self.launch_ini_file_archiving_process()
                     else:
                         # The barcode is not valid... so let's ask the user if he/she wants to re-print the file or not
+                        LOGGER.info(
+                            "The Barcode scanned \""
+                            + actual_barcode_to_be_verified_raw
+                            + "\" is not valid, asking for a Reprinting"
+                        )
+                        # First, let's close the current barcode verification window
+                        self.get_barcode_verification_view().reinitialize_window_appearance()
+                        self.get_barcode_verification_view().close_window()
                         self.launch_reprinting_asking_process()
         except Exception as exception:
             # At least one error has occurred, therefore, stop the process
@@ -693,11 +723,44 @@ class ReworkCheckOUTController:
             )
             raise
 
+    def launch_printing_and_verification_process(self):
+        """
+        Successively launching the Printing and the verification of the barcode printed on the previous file's label
+        :return: None
+        """
+        # Launching the printing process
+        self.get_rework_check_out_as().launch_print_process(self.get_order_number_currently_treated())
+        # Once the printing process is done, let's confirm the newly printed barcode
+        self.launch_barcode_verification()
+
     def launch_ini_file_archiving_process(self):
         LOGGER.info("Archiving the .ini file : \"" + self.get_order_number_currently_treated() + ".ini\"")
 
     def launch_reprinting_asking_process(self):
-        print("Would you like to reprint the file?")
+        """
+        Opening the Window dedicated to the Reprinting Asking process
+        :return:
+        """
+        self.get_asking_for_reprinting_view().show_window()
 
+    def manage_reprinting_ok_chosen(self):
+        """
+        Confirming the actions to be realized after the Reprinting confirmation within the window asking for it
+        :return: None
+        """
+        # First, let's close the Asking for Reprinting window
+        self.get_asking_for_reprinting_view().close_window()
+        # And then, let's start another printing process
+        self.launch_printing_and_verification_process()
 
+    def manage_reprinting_abort_chosen(self):
+        """
+        "Abort" option was chosen when it came to the asking for a reprinting process, the entire Application
+        has to stop
+        :return:
+        """
+        # First, let's close the Asking for Reprinting window
+        self.get_asking_for_reprinting_view().close_window()
+        # And then, stopping the entire Application
+        sys.exit()
 
