@@ -9,7 +9,9 @@ __author__ = "Rindra Mbolamananamalala"
 __email__ = "rindraibi@gmail.com"
 
 import datetime
+import os
 import subprocess
+import shutil
 
 from UTILS.time_utils import get_current_date, get_current_time
 
@@ -156,5 +158,32 @@ class ReworkCheckOUTASImpl(ReworkCheckOUTASIntf):
             LOGGER.error(
                 exception.__class__.__name__ + ": " + str(exception)
                 + ". Can't go further with the PRN file Printing Process. "
+            )
+            raise
+
+    def archive_ini_file(self, raw_order_number: str) -> None:
+        """
+        Archiving the .ini file corresponding to the Order Number specified within the arguments
+        :param: raw_order_number: The Order Number, in a raw format, corresponding to the .ini file to be archived
+        :return: None
+        """
+        try:
+            # First, let's copy the current file and paste it within the Archives' folder
+            current_ini_file_path = get_application_property("process_ini_file_folder_location") \
+                                    + "\\" + raw_order_number + ".ini"
+            new_ini_file_path = get_application_property("process_ini_file_archive_folder_location") \
+                                + "\\" + raw_order_number + ".ini"
+            shutil.copyfile(current_ini_file_path, new_ini_file_path)
+            # Then, let's rename the current .ini file with its new name
+            new_ini_file_name = chr(ord(raw_order_number[0]) + 1) + raw_order_number[1:]
+            new_ini_file_path = get_application_property("process_ini_file_folder_location") \
+                                    + "\\" + new_ini_file_name + ".ini"
+            os.rename(current_ini_file_path, new_ini_file_path)
+            LOGGER.info("INI file : \"" + raw_order_number + "\" successfully archived")
+        except Exception as exception:
+            # At least one error has occurred, therefore, stop the process
+            LOGGER.error(
+                exception.__class__.__name__ + ": " + str(exception)
+                + ". Can't go further with the INI file archiving process. "
             )
             raise

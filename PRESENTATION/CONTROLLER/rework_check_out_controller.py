@@ -734,7 +734,20 @@ class ReworkCheckOUTController:
         self.launch_barcode_verification()
 
     def launch_ini_file_archiving_process(self):
-        LOGGER.info("Archiving the .ini file : \"" + self.get_order_number_currently_treated() + ".ini\"")
+        try:
+            LOGGER.info("Archiving the .ini file : \"" + self.get_order_number_currently_treated() + ".ini\"")
+            # Actual archiving
+            self.get_rework_check_out_as().archive_ini_file(self.get_order_number_currently_treated())
+            # After that, the last step is to stop the entire App (after closing the Barcode Verification window)
+            self.get_barcode_verification_view().close_window()
+            sys.exit()
+        except Exception as exception:
+            # At least one error has occurred, therefore, stop the process
+            LOGGER.error(
+                exception.__class__.__name__ + ": " + str(exception)
+                + ". Can't go further with the INI file archiving process. "
+            )
+            raise
 
     def launch_reprinting_asking_process(self):
         """

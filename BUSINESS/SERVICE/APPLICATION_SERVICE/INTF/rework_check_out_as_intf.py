@@ -62,3 +62,12 @@ class ReworkCheckOUTASIntf(ABC):
         :return: None
         """
         pass
+
+    @abstractmethod
+    def archive_ini_file(self, raw_order_number: str) -> None:
+        """
+        Archiving the .ini file corresponding to the Order Number specified within the arguments
+        :param: raw_order_number: The Order Number, in a raw format, corresponding to the .ini file to be archived
+        :return: None
+        """
+        pass
