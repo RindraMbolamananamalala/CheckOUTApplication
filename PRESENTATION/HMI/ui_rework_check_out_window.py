@@ -118,4 +118,4 @@ class Ui_ReworkCheckOUTWindow(object):
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
-        self.label_fixed_strings.setText("Rework In Station")
+        self.label_fixed_strings.setText("Rework Out Station")
