@@ -52,7 +52,7 @@ class BarcodeScanView:
                                         u"border-radius: 55px;")
         text_area_barcode.setPlainText("")
         # Adapting the Placeholder of the Barcode Scanning area
-        text_area_barcode.setPlaceholderText("Wrong Barcode Scanned")
+        text_area_barcode.setPlaceholderText("Wrong Code Scanned")
 
     def reinitialize_window_appearance(self):
         """
