@@ -16,6 +16,7 @@ from PyQt5 import QtTest
 
 from CONFIGURATIONS.logger import LOGGER
 from CONFIGURATIONS.settings_properties import get_settings_property
+from CONFIGURATIONS.application_properties import get_application_property
 
 from PRESENTATION.VIEW.barcode_scan_view import BarcodeScanView
 from PRESENTATION.VIEW.quality_inspector_code_scan_view import QualityInspectorCodeScanView
@@ -728,10 +729,22 @@ class ReworkCheckOUTController:
         Successively launching the Printing and the verification of the barcode printed on the previous file's label
         :return: None
         """
-        # Launching the printing process
-        self.get_rework_check_out_as().launch_print_process(self.get_order_number_currently_treated())
-        # Once the printing process is done, let's confirm the newly printed barcode
-        self.launch_barcode_verification()
+        try:
+            # Launching the printing process
+            self.get_rework_check_out_as().launch_print_process(self.get_order_number_currently_treated())
+            # Once the printing process is done, let's confirm the newly printed barcode...
+            # ... but before that, we have to delete the last copy of the .prn file concerned during the printing
+            # process...
+            os.remove(get_application_property("prn_file_template_path").replace(".prn", "_copy.prn"))
+            # actual transition to the next step...
+            self.launch_barcode_verification()
+        except Exception as exception:
+            # At least one error has occurred, therefore, stop the process
+            LOGGER.error(
+                exception.__class__.__name__ + ": " + str(exception)
+                + ". Can't go further with the Printing and Verification process. "
+            )
+            raise
 
     def launch_ini_file_archiving_process(self):
         try:
@@ -776,4 +789,3 @@ class ReworkCheckOUTController:
         self.get_asking_for_reprinting_view().close_window()
         # And then, stopping the entire Application
         sys.exit()
-
